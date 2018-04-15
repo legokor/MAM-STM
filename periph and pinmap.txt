@@ -1,0 +1,16 @@
+
+motorok ( 12db gpio, 6 db pwm, 6 db adc )
+szervo ( 6 db pwm )
+wifi modul ( serial )
+ledek ( 3db gpio )
+
+összesen:
+PWM	12 db
+GPIO	15 db
+ADC	 6 db
+USART	 1 db
+
+PWM - TIM3, TIM4, TIM5
+USART - USART6
+ADC - ADC1
+GPIO - ?
