@@ -10,7 +10,8 @@ GPIO	15 db
 ADC	 6 db
 USART	 1 db
 
-PWM - TIM3, TIM4, TIM5
+PWM - 
 USART - USART6
 ADC - ADC1
 GPIO - ?
+GPIO:
