@@ -33,6 +33,7 @@ GPIO: (tomitol)
 		PC15 OUT
 		PB7  OUT
 
+		PB2 constant output 0V, +pull down resistor
 
 configaturations
 
@@ -44,6 +45,12 @@ TIMERS:
 USART:
 baud 11520
 
+TIMERS:
+prescaler	2
+period		24 000
+
+others:
+default
 
 
 
