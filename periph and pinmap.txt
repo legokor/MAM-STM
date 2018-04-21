@@ -13,5 +13,47 @@ USART	 1 db
 PWM - 
 USART - USART6
 ADC - ADC1
-GPIO - ?
-GPIO:
+
+GPIO: (tomitol)
+	BAL OLDAL:
+		PC5	 OUT
+		PB1	 OUT
+		PE15 OUT
+		PE13 OUT
+		
+	JOBB OLDAL:
+		PE4  OUT
+		PE2  OUT
+		PB8  OUT
+		PB6  OUT
+		PB9  OUT
+		PE1  OUT
+		PE3  OUT
+		PC13 OUT
+		PC15 OUT
+		PB7  OUT
+
+
+configaturations
+
+TIMERS:
+50 Hz
+
+
+
+USART:
+baud 11520
+
+
+
+
+
+
+
+
+
+
+
+
+
+
