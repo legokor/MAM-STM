@@ -33,7 +33,12 @@ GPIO: (tomitol)
 		PC15 OUT
 		PB7  OUT
 
-		PB2 constant output 0V, +pull down resistor
+		PB2  constant output 0V, +pull down resistor
+		PD13 constant output 0V, +pull down resistor
+		PD12 constant output 0V, +pull down resistor
+		PD11 constant output 0V, +pull down resistor
+		PC12 constant output 0V, +pull down resistor
+		PD0  constant output 0V, +pull down resistor
 
 configaturations
 
