@@ -38,7 +38,9 @@ static void MX_USART6_UART_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Function prototipes --------------------------------------------------------*/
+
 void PWM_start_all(void);
+void PWM_set_pulse(int ch, int pulse);
 
 
 
@@ -66,6 +68,7 @@ int main(void)
   // ------------------------------ end of generated init stuff ------------------------------
 
   PWM_start_all();
+
 
 
 
@@ -97,6 +100,85 @@ void PWM_start_all(void) {
 
 	HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
+}
+
+/*
+ * Sets a pulse with of a pwm channel
+ * param 1: int Channel number
+ * param 2: int Pulse with in percent: 0 to 100
+ */
+void PWM_set_pulse(int ch, int pulse) {
+
+	int period = 24000;
+	pulse = period * pulse/100;
+
+	switch(ch) {
+
+	case 0: {
+		TIM2->CCR1 = pulse;
+		break;
+	}
+
+	case 1: {
+		TIM2->CCR4 = pulse;
+		break;
+	}
+
+	case 2: {
+		TIM3->CCR1 = pulse;
+		break;
+	}
+
+	case 3: {
+		TIM3->CCR2 = pulse;
+			break;
+	}
+
+	case 4: {
+		TIM3->CCR3 = pulse;
+		break;
+	}
+
+	case 5: {
+		TIM3->CCR4 = pulse;
+		break;
+	}
+
+	case 6: {
+		TIM4->CCR3 = pulse;
+		break;
+	}
+
+	case 7: {
+		TIM4->CCR4 = pulse;
+		break;
+	}
+
+	case 8: {
+		TIM5->CCR3 = pulse;
+		break;
+	}
+
+	case 9: {
+		TIM5->CCR4 = pulse;
+		break;
+	}
+
+	case 10: {
+		TIM9->CCR1 = pulse;
+		break;
+	}
+
+	case 11: {
+		TIM9->CCR2 = pulse;
+		break;
+	}
+
+	default: {
+		break;
+	}
+	// end case
+	}
 }
 
 
