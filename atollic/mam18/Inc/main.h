@@ -47,18 +47,18 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define const_0_Pin GPIO_PIN_2
-#define const_0_GPIO_Port GPIOB
-#define const_0D11_Pin GPIO_PIN_11
-#define const_0D11_GPIO_Port GPIOD
-#define const_0D12_Pin GPIO_PIN_12
-#define const_0D12_GPIO_Port GPIOD
-#define const_0D13_Pin GPIO_PIN_13
-#define const_0D13_GPIO_Port GPIOD
-#define const_0C12_Pin GPIO_PIN_12
-#define const_0C12_GPIO_Port GPIOC
-#define const_0D0_Pin GPIO_PIN_0
-#define const_0D0_GPIO_Port GPIOD
+#define const_0_in_Pin GPIO_PIN_2
+#define const_0_in_GPIO_Port GPIOB
+#define const_0_inD11_Pin GPIO_PIN_11
+#define const_0_inD11_GPIO_Port GPIOD
+#define const_0_inD12_Pin GPIO_PIN_12
+#define const_0_inD12_GPIO_Port GPIOD
+#define const_0_inD13_Pin GPIO_PIN_13
+#define const_0_inD13_GPIO_Port GPIOD
+#define const_0_inC12_Pin GPIO_PIN_12
+#define const_0_inC12_GPIO_Port GPIOC
+#define const_0_inD0_Pin GPIO_PIN_0
+#define const_0_inD0_GPIO_Port GPIOD
 
 /* ########################## Assert Selection ############################## */
 /**
