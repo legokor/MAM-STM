@@ -37,7 +37,7 @@ static void MX_USART6_UART_Init(void);
                                     
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
-/* Function prototipes --------------------------------------------------------*/
+/* --------------------------------------------------------My Function prototipes --------------------------------------------------------*/
 
 void PWM_start_all(void);
 void PWM_set_pulse(int ch, int pulse);
@@ -65,7 +65,7 @@ int main(void)
   MX_USART6_UART_Init();
 
 
-  // ------------------------------ end of generated init stuff ------------------------------
+  /* -------------------------------------------------------- My init calls -------------------------------------------------------- */
 
   PWM_start_all();
 
