@@ -49,6 +49,8 @@ TIMERS:
 
 USART:
 baud 11520
+PC7 Rx
+PC6 Tx
 
 TIMERS:
 prescaler	2

@@ -41,6 +41,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 void PWM_start_all(void);
 void PWM_set_pulse(int ch, int pulse);
+void PWM_set_all_pulse(int pulse);
 
 
 
@@ -68,6 +69,9 @@ int main(void)
   /* -------------------------------------------------------- My init calls -------------------------------------------------------- */
 
   PWM_start_all();
+  PWM_set_all_pulse(0);
+
+
 
 
 
@@ -178,6 +182,15 @@ void PWM_set_pulse(int ch, int pulse) {
 		break;
 	}
 	// end case
+	}
+}
+
+/*
+ * Sets all pwm to the same pulse width
+ */
+void PWM_set_all_pulse(int pulse) {
+	for (int i = 0; i < 12; i++) {
+		PWM_set_pulse(i, pulse);
 	}
 }
 
