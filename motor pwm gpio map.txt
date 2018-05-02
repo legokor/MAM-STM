@@ -1,0 +1,26 @@
+
+
+PA3 pwm 
+PC5 
+PB1 
+
+PB11 pwm
+PE13
+PE15
+
+PE6 pwm
+PE4
+PE2
+
+PB4 pwm
+PB6
+PB8
+
+PE5 pwm
+PE3
+PE1
+
+PB5 pwm
+PB7
+PB9
+
