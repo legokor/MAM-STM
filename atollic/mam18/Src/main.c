@@ -72,6 +72,10 @@ int main(void)
   PWM_set_all_pulse(0);
 
 
+  // start all motors forward
+  for (int i = 0; i < 6; i++) {
+	  DC_motor_set(i, 1, 70);
+  }
 
 
 
@@ -198,7 +202,7 @@ void PWM_set_all_pulse(int pulse) {
  * Sets a motor to a certain direction with a certain speed
  * motor num: 0 - 5
  * dir		: 0 fwd, anithing else bck
- * speed	? 0 - 100 (%)	0 speed disables power and sets 0 PWM
+ * speed	? 0 - 100 (%)	0 speed sets 0 PWM
  */
 void DC_motor_set(int motor_num, int dir, int speed) {
 	switch (motor_num) {
