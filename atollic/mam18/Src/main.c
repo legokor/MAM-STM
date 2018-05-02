@@ -43,7 +43,7 @@ void PWM_start_all(void);
 void PWM_set_pulse(int ch, int pulse);
 void PWM_set_all_pulse(int pulse);
 
-
+void DC_motor_set(int motor_num, int dir, int speed);
 
 
 int main(void)
@@ -119,7 +119,7 @@ void PWM_set_pulse(int ch, int pulse) {
 	switch(ch) {
 
 	case 0: {
-		TIM2->CCR1 = pulse;
+		TIM2->CCR3 = pulse;
 		break;
 	}
 
@@ -194,8 +194,135 @@ void PWM_set_all_pulse(int pulse) {
 	}
 }
 
+/*
+ * Sets a motor to a certain direction with a certain speed
+ * motor num: 0 - 5
+ * dir		: 0 fwd, anithing else bck
+ * speed	? 0 - 100 (%)	0 speed disables power and sets 0 PWM
+ */
+void DC_motor_set(int motor_num, int dir, int speed) {
+	switch (motor_num) {
+	case 0: {
+		PWM_set_pulse(9, speed);
 
-// ------------------------------ generated functions ------------------------------
+		if (speed == 0) {
+			break;
+		}
+
+		if (dir == 0) {
+			HAL_GPIO_WritePin(GPIOC, 5, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOB, 1, GPIO_PIN_RESET);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOC, 5, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB, 1, GPIO_PIN_SET);
+		}
+		break;
+	}
+
+	case 1: {
+		PWM_set_pulse(1, speed);
+
+		if (speed == 0) {
+			break;
+		}
+
+		if (dir == 0) {
+			HAL_GPIO_WritePin(GPIOE, 13, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOE, 15, GPIO_PIN_RESET);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOE, 13, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOE, 15, GPIO_PIN_SET);
+		}
+		break;
+	}
+
+	case 2: {
+		PWM_set_pulse(11, speed);
+
+		if (speed == 0) {
+			break;
+		}
+
+		if (dir == 0) {
+			HAL_GPIO_WritePin(GPIOE, 4, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOE, 2, GPIO_PIN_RESET);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOE, 4, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOE, 2, GPIO_PIN_SET);
+		}
+		break;
+	}
+	case 3: {
+		PWM_set_pulse(10, speed);
+
+		if (speed == 0) {
+			break;
+		}
+
+		if (dir == 0) {
+			HAL_GPIO_WritePin(GPIOE, 3, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOE, 1, GPIO_PIN_RESET);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOE, 3, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOE, 1, GPIO_PIN_SET);
+		}
+		break;
+	}
+
+	case 4: {
+		PWM_set_pulse(2, speed);
+
+		if (speed == 0) {
+			break;
+		}
+
+		if (dir == 0) {
+			HAL_GPIO_WritePin(GPIOB, 6, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOB, 8, GPIO_PIN_RESET);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOB, 6, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB, 8, GPIO_PIN_SET);
+		}
+		break;
+	}
+
+	case 5: {
+		PWM_set_pulse(3, speed);
+
+		if (speed == 0) {
+			break;
+		}
+
+		if (dir == 0) {
+			HAL_GPIO_WritePin(GPIOB, 7, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOB, 9, GPIO_PIN_RESET);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOB, 7, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB, 9, GPIO_PIN_SET);
+		}
+		break;
+	}
+
+	default: {
+		// ???
+		break;
+	}
+	//end switch
+	}
+}
+
+
+
+
+
+
+// ------------------------------------------------------------ generated functions ------------------------------------------------------------
 /** System Clock Configuration
 */
 void SystemClock_Config(void)

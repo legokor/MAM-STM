@@ -1,25 +1,30 @@
 
-
+0:
 PA3 pwm 
 PC5 
 PB1 
 
+1:
 PB11 pwm
 PE13
 PE15
 
+2:
 PE6 pwm
 PE4
 PE2
 
-PB4 pwm
-PB6
-PB8
-
+3:
 PE5 pwm
 PE3
 PE1
 
+4:
+PB4 pwm
+PB6
+PB8
+
+5:
 PB5 pwm
 PB7
 PB9
