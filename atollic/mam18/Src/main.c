@@ -7,6 +7,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <string.h>
+#include <stdbool.h>
 #include "main.h"
 #include "stm32f4xx_hal.h"
 
@@ -52,6 +54,8 @@ void PWM_set_all_pulse(int pulse);
 
 void DC_motor_set(int motor_num, int dir, int speed);
 
+bool newMessage = false;
+
 
 
 
@@ -82,7 +86,7 @@ int main(void)
 
 
   // __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
-  HAL_UART_Receive_IT(localUartHandler, &rxBuf, 1);
+  HAL_UART_Receive_IT(&huart6, &rxBuf, 1);
 
   // start all motors forward
   for (int i = 0; i < 6; i++) {
@@ -91,19 +95,22 @@ int main(void)
 
 
   // char transmit_data[4] = {'a', '0', '0', '0'};
-  char * transmit_data = "aaa";
+  char transmit_data[] = "nembirom";
 
   // ------------------------------------------------------------ while(1) ------------------------------------------------------------
 
   /* Infinite loop */
   while (1)
   {
-
-      if (receiveBuffer[0] != 0) {
+	  HAL_Delay(10);
+      if (newMessage) {
           //  do the thing
-          HAL_Delay(1000);
+          // HAL_Delay(1000);
           // HAL_UART_Transmit_IT(&huart6, transmit_data, 4);
-      HAL_UART_Transmit(huart6, (uint8_t *) transmit_data, strlen(transmit_data), 120);
+          //HAL_UART_Transmit(&huart6, (uint8_t *) transmit_data, strlen(transmit_data), 120);
+          HAL_UART_Transmit(&huart6, (uint8_t *) receiveBuffer, strlen(receiveBuffer), 120);
+          newMessage = false;
+          strcpy(receiveBuffer, "");
           PWM_set_all_pulse(90);
       }
 
@@ -112,16 +119,16 @@ int main(void)
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  if (huart->Instance == huart6->Instance) {
+  if (huart->Instance == huart6.Instance) {
     if (rxBuf == '\n' || rxBuf == '\r') {
       strcat(receiveBuffer, "\r\n");
-      strcpy(receiveBuffer, "");
+      newMessage = true;
     } else {
       int len = strlen(receiveBuffer);
       receiveBuffer[len] = rxBuf;
       receiveBuffer[len+1] = '\0';
     }
-    HAL_UART_Receive_IT(huart6, &rxBuf, 1);
+    HAL_UART_Receive_IT(&huart6, &rxBuf, 1);
   }
 }
 

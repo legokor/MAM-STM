@@ -198,7 +198,7 @@ void USART6_IRQHandler(void)
   /* USER CODE END USART6_IRQn 0 */
   HAL_UART_IRQHandler(&huart6);
   /* USER CODE BEGIN USART6_IRQn 1 */
-  HAL_UART_Receive_IT(&huart6, recive_data, 4);
+  //HAL_UART_Receive_IT(&huart6, recive_data, 4);
   /* USER CODE END USART6_IRQn 1 */
 }
 
