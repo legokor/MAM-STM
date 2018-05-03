@@ -3,10 +3,7 @@
   * File Name          : main.c
   * Description        : Main program body
   ******************************************************************************
-  *
   * COPYRIGHT(c) 2018 STMicroelectronics
-  *
-  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
@@ -24,6 +21,8 @@ TIM_HandleTypeDef htim9;
 
 UART_HandleTypeDef huart6;
 
+/* Private variables ---------------------------------------------------------*/
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -37,6 +36,7 @@ static void MX_USART6_UART_Init(void);
                                     
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
+
 /* --------------------------------------------------------My Function prototipes --------------------------------------------------------*/
 
 void PWM_start_all(void);
@@ -46,9 +46,10 @@ void PWM_set_all_pulse(int pulse);
 void DC_motor_set(int motor_num, int dir, int speed);
 
 
+
+
 int main(void)
 {
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -66,6 +67,7 @@ int main(void)
   MX_USART6_UART_Init();
 
 
+
   /* -------------------------------------------------------- My init calls -------------------------------------------------------- */
 
   PWM_start_all();
@@ -80,14 +82,16 @@ int main(void)
 
 
 
-  // ------------------------------ while(1) ------------------------------
+  // ------------------------------------------------------------ while(1) ------------------------------------------------------------
+
   /* Infinite loop */
   while (1)
   {
 
   }
-
 }
+
+
 
 
 // starts al pwm channels
@@ -327,6 +331,8 @@ void DC_motor_set(int motor_num, int dir, int speed) {
 
 
 // ------------------------------------------------------------ generated functions ------------------------------------------------------------
+
+
 /** System Clock Configuration
 */
 void SystemClock_Config(void)
