@@ -24,8 +24,7 @@ UART_HandleTypeDef huart6;
 
 /* --------------------------------------------------------My Global Variables --------------------------------------------------------*/
 
-uint8_t recive_data[4];
-int data_came = 0;
+char* recive_data = {'0', '0', '0', '0'};
 
 
 /* Private variables ---------------------------------------------------------*/
@@ -89,20 +88,22 @@ int main(void)
   }
 
 
-
+  char transmit_data[4] = {'a', '0', '0', '0'};
 
   // ------------------------------------------------------------ while(1) ------------------------------------------------------------
-	char pdata[4] = {'f', 'u', 'c', 'k'};
+
   /* Infinite loop */
   while (1)
   {
 
-	  if (data_came == 1) {
+	  if (recive_data[0] != '0') {
 		  //  do the thing
-		  HAL_delay(1000);
-		  HAL_UART_Transmit_IT(&huart6, pdata, 4);
-		  data_came = 0;
+		  HAL_Delay(1000);
+		  HAL_UART_Transmit_IT(&huart6, transmit_data, 4);
+		  PWM_set_all_pulse(90);
+		  for (int i = 0; i < 4; i++) { recive_data[i] = '0'; }
 	  }
+
 
   }
 }

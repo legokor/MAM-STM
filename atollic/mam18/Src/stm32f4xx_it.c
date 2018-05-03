@@ -42,8 +42,8 @@
 /* External variables --------------------------------------------------------*/
 extern UART_HandleTypeDef huart6;
 
-extern char recive_data[4];
-extern int data_came = 0;
+extern char recive_data;
+
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -199,7 +199,6 @@ void USART6_IRQHandler(void)
   HAL_UART_IRQHandler(&huart6);
   /* USER CODE BEGIN USART6_IRQn 1 */
   HAL_UART_Receive_IT(&huart6, recive_data, 4);
-  data_came = 1;
   /* USER CODE END USART6_IRQn 1 */
 }
 

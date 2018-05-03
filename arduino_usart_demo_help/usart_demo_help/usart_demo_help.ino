@@ -44,7 +44,7 @@ void setup()
 void loop()
 {
  lcd.setCursor(9,1);            // move cursor to second line "1" and 9 spaces over
- lcd.print(millis()/1000);      // display seconds elapsed since power-up
+ lcd.print(s);      // display seconds elapsed since power-up
 
 
  lcd.setCursor(0,1);            // move to the begining of the second line
@@ -53,7 +53,11 @@ void loop()
  if (Serial.available()) {
   char inByte = Serial.read();
   s = s + inByte;
+  lcd.print(s);
+}
 
+if (s.length() > 4) {
+  s = "";
 }
 
  switch (lcd_key)               // depending on which button was pushed, we perform an action
@@ -80,7 +84,7 @@ void loop()
      }
    case btnSELECT:
      {
-     lcd.print("SELECT");
+     lcd.print("sending data");
      Serial.write("sex!");
      break;
      }
