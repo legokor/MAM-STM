@@ -21,6 +21,13 @@ TIM_HandleTypeDef htim9;
 
 UART_HandleTypeDef huart6;
 
+
+/* --------------------------------------------------------My Global Variables --------------------------------------------------------*/
+
+uint8_t recive_data[4];
+int data_came = 0;
+
+
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,6 +81,8 @@ int main(void)
   PWM_set_all_pulse(0);
 
 
+  __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+
   // start all motors forward
   for (int i = 0; i < 6; i++) {
 	  DC_motor_set(i, 1, 70);
@@ -83,10 +92,17 @@ int main(void)
 
 
   // ------------------------------------------------------------ while(1) ------------------------------------------------------------
-
+	char pdata[4] = {'f', 'u', 'c', 'k'};
   /* Infinite loop */
   while (1)
   {
+
+	  if (data_came == 1) {
+		  //  do the thing
+		  HAL_delay(1000);
+		  HAL_UART_Transmit_IT(&huart6, pdata, 4);
+		  data_came = 0;
+	  }
 
   }
 }
