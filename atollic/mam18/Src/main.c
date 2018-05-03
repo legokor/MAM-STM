@@ -24,7 +24,8 @@ UART_HandleTypeDef huart6;
 
 /* --------------------------------------------------------My Global Variables --------------------------------------------------------*/
 
-char* recive_data = {'0', '0', '0', '0'};
+char receiveBuffer[256];
+char rxBuf;
 
 
 /* Private variables ---------------------------------------------------------*/
@@ -39,7 +40,7 @@ static void MX_TIM4_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM9_Init(void);
 static void MX_USART6_UART_Init(void);
-                                    
+
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 
@@ -80,15 +81,17 @@ int main(void)
   PWM_set_all_pulse(0);
 
 
-  __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+  // __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+  HAL_UART_Receive_IT(localUartHandler, &rxBuf, 1);
 
   // start all motors forward
   for (int i = 0; i < 6; i++) {
-	  DC_motor_set(i, 1, 70);
+      DC_motor_set(i, 1, 70);
   }
 
 
-  char transmit_data[4] = {'a', '0', '0', '0'};
+  // char transmit_data[4] = {'a', '0', '0', '0'};
+  char * transmit_data = "aaa";
 
   // ------------------------------------------------------------ while(1) ------------------------------------------------------------
 
@@ -96,39 +99,50 @@ int main(void)
   while (1)
   {
 
-	  if (recive_data[0] != '0') {
-		  //  do the thing
-		  HAL_Delay(1000);
-		  HAL_UART_Transmit_IT(&huart6, transmit_data, 4);
-		  PWM_set_all_pulse(90);
-		  for (int i = 0; i < 4; i++) { recive_data[i] = '0'; }
-	  }
+      if (receiveBuffer[0] != 0) {
+          //  do the thing
+          HAL_Delay(1000);
+          // HAL_UART_Transmit_IT(&huart6, transmit_data, 4);
+      HAL_UART_Transmit(huart6, (uint8_t *) transmit_data, strlen(transmit_data), 120);
+          PWM_set_all_pulse(90);
+      }
 
 
   }
 }
 
-
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+  if (huart->Instance == huart6->Instance) {
+    if (rxBuf == '\n' || rxBuf == '\r') {
+      strcat(receiveBuffer, "\r\n");
+      strcpy(receiveBuffer, "");
+    } else {
+      int len = strlen(receiveBuffer);
+      receiveBuffer[len] = rxBuf;
+      receiveBuffer[len+1] = '\0';
+    }
+    HAL_UART_Receive_IT(huart6, &rxBuf, 1);
+  }
+}
 
 // starts al pwm channels
 void PWM_start_all(void) {
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
-	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_4);
 
-	HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_2);
 }
 
 /*
@@ -138,208 +152,208 @@ void PWM_start_all(void) {
  */
 void PWM_set_pulse(int ch, int pulse) {
 
-	int period = 24000;
-	pulse = period * pulse/100;
+    int period = 24000;
+    pulse = period * pulse/100;
 
-	switch(ch) {
+    switch(ch) {
 
-	case 0: {
-		TIM2->CCR3 = pulse;
-		break;
-	}
+    case 0: {
+        TIM2->CCR3 = pulse;
+        break;
+    }
 
-	case 1: {
-		TIM2->CCR4 = pulse;
-		break;
-	}
+    case 1: {
+        TIM2->CCR4 = pulse;
+        break;
+    }
 
-	case 2: {
-		TIM3->CCR1 = pulse;
-		break;
-	}
+    case 2: {
+        TIM3->CCR1 = pulse;
+        break;
+    }
 
-	case 3: {
-		TIM3->CCR2 = pulse;
-			break;
-	}
+    case 3: {
+        TIM3->CCR2 = pulse;
+            break;
+    }
 
-	case 4: {
-		TIM3->CCR3 = pulse;
-		break;
-	}
+    case 4: {
+        TIM3->CCR3 = pulse;
+        break;
+    }
 
-	case 5: {
-		TIM3->CCR4 = pulse;
-		break;
-	}
+    case 5: {
+        TIM3->CCR4 = pulse;
+        break;
+    }
 
-	case 6: {
-		TIM4->CCR3 = pulse;
-		break;
-	}
+    case 6: {
+        TIM4->CCR3 = pulse;
+        break;
+    }
 
-	case 7: {
-		TIM4->CCR4 = pulse;
-		break;
-	}
+    case 7: {
+        TIM4->CCR4 = pulse;
+        break;
+    }
 
-	case 8: {
-		TIM5->CCR3 = pulse;
-		break;
-	}
+    case 8: {
+        TIM5->CCR3 = pulse;
+        break;
+    }
 
-	case 9: {
-		TIM5->CCR4 = pulse;
-		break;
-	}
+    case 9: {
+        TIM5->CCR4 = pulse;
+        break;
+    }
 
-	case 10: {
-		TIM9->CCR1 = pulse;
-		break;
-	}
+    case 10: {
+        TIM9->CCR1 = pulse;
+        break;
+    }
 
-	case 11: {
-		TIM9->CCR2 = pulse;
-		break;
-	}
+    case 11: {
+        TIM9->CCR2 = pulse;
+        break;
+    }
 
-	default: {
-		break;
-	}
-	// end case
-	}
+    default: {
+        break;
+    }
+    // end case
+    }
 }
 
 /*
  * Sets all pwm to the same pulse width
  */
 void PWM_set_all_pulse(int pulse) {
-	for (int i = 0; i < 12; i++) {
-		PWM_set_pulse(i, pulse);
-	}
+    for (int i = 0; i < 12; i++) {
+        PWM_set_pulse(i, pulse);
+    }
 }
 
 /*
  * Sets a motor to a certain direction with a certain speed
  * motor num: 0 - 5
- * dir		: 0 fwd, anithing else bck
- * speed	? 0 - 100 (%)	0 speed sets 0 PWM
+ * dir        : 0 fwd, anithing else bck
+ * speed    ? 0 - 100 (%)    0 speed sets 0 PWM
  */
 void DC_motor_set(int motor_num, int dir, int speed) {
-	switch (motor_num) {
-	case 0: {
-		PWM_set_pulse(9, speed);
+    switch (motor_num) {
+    case 0: {
+        PWM_set_pulse(9, speed);
 
-		if (speed == 0) {
-			break;
-		}
+        if (speed == 0) {
+            break;
+        }
 
-		if (dir == 0) {
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-		}
-		else {
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-		}
-		break;
-	}
+        if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+        }
+        else {
+            HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+        }
+        break;
+    }
 
-	case 1: {
-		PWM_set_pulse(1, speed);
+    case 1: {
+        PWM_set_pulse(1, speed);
 
-		if (speed == 0) {
-			break;
-		}
+        if (speed == 0) {
+            break;
+        }
 
-		if (dir == 0) {
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_RESET);
-		}
-		else {
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_SET);
-		}
-		break;
-	}
+        if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_RESET);
+        }
+        else {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_SET);
+        }
+        break;
+    }
 
-	case 2: {
-		PWM_set_pulse(11, speed);
+    case 2: {
+        PWM_set_pulse(11, speed);
 
-		if (speed == 0) {
-			break;
-		}
+        if (speed == 0) {
+            break;
+        }
 
-		if (dir == 0) {
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
-		}
-		else {
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
-		}
-		break;
-	}
-	case 3: {
-		PWM_set_pulse(10, speed);
+        if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+        }
+        else {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+        }
+        break;
+    }
+    case 3: {
+        PWM_set_pulse(10, speed);
 
-		if (speed == 0) {
-			break;
-		}
+        if (speed == 0) {
+            break;
+        }
 
-		if (dir == 0) {
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
-		}
-		else {
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
-		}
-		break;
-	}
+        if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
+        }
+        else {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+        }
+        break;
+    }
 
-	case 4: {
-		PWM_set_pulse(2, speed);
+    case 4: {
+        PWM_set_pulse(2, speed);
 
-		if (speed == 0) {
-			break;
-		}
+        if (speed == 0) {
+            break;
+        }
 
-		if (dir == 0) {
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
-		}
-		else {
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
-		}
-		break;
-	}
+        if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+        }
+        else {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
+        }
+        break;
+    }
 
-	case 5: {
-		PWM_set_pulse(3, speed);
+    case 5: {
+        PWM_set_pulse(3, speed);
 
-		if (speed == 0) {
-			break;
-		}
+        if (speed == 0) {
+            break;
+        }
 
-		if (dir == 0) {
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
-		}
-		else {
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
-		}
-		break;
-	}
+        if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+        }
+        else {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+        }
+        break;
+    }
 
-	default: {
-		// ???
-		break;
-	}
-	//end switch
-	}
+    default: {
+        // ???
+        break;
+    }
+    //end switch
+    }
 }
 
 
@@ -358,13 +372,13 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
-    /**Configure the main internal regulator output voltage 
+    /**Configure the main internal regulator output voltage
     */
   __HAL_RCC_PWR_CLK_ENABLE();
 
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -380,7 +394,7 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -394,11 +408,11 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the Systick interrupt time 
+    /**Configure the Systick interrupt time
     */
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-    /**Configure the Systick 
+    /**Configure the Systick
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
@@ -412,7 +426,7 @@ static void MX_ADC1_Init(void)
 
   ADC_ChannelConfTypeDef sConfig;
 
-    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
+    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
     */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
@@ -431,7 +445,7 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
+    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
     */
   sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = 1;
@@ -674,9 +688,9 @@ static void MX_USART6_UART_Init(void)
 
 }
 
-/** Configure pins as 
-        * Analog 
-        * Input 
+/** Configure pins as
+        * Analog
+        * Input
         * Output
         * EVENT_OUT
         * EXTI
@@ -694,19 +708,19 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_13 
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_13
                           |GPIO_PIN_15|GPIO_PIN_1, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13|GPIO_PIN_15|GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8 
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8
                           |GPIO_PIN_9, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PE2 PE3 PE4 PE13 
+  /*Configure GPIO pins : PE2 PE3 PE4 PE13
                            PE15 PE1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_13 
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_13
                           |GPIO_PIN_15|GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -720,9 +734,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB1 PB6 PB7 PB8 
+  /*Configure GPIO pins : PB1 PB6 PB7 PB8
                            PB9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8 
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8
                           |GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -762,10 +776,10 @@ void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  while(1) 
+  while(1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */ 
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef USE_FULL_ASSERT
@@ -790,10 +804,10 @@ void assert_failed(uint8_t* file, uint32_t line)
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}
-*/ 
+*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
