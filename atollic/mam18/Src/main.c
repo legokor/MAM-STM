@@ -19,9 +19,9 @@
 #define SERVO_LEFT_BACK 0
 #define SERVO_ARM_YAW 8
 
-#define MID_POS 21
-#define MIN_POS 14
-#define MAX_POS 27
+#define MID_POS 200
+#define MIN_POS 140
+#define MAX_POS 270
 
 
 
@@ -110,8 +110,13 @@ int main(void)
   // ------------------------------------------------------------ while(1) ------------------------------------------------------------
   //int k = 21;//servo positions : 14-27; -- 21 közép
   int steeringAngle = 0;
+  int motorSpeed = 150;
 
-  PWM_set_pulse(SERVO_ARM_YAW,MID_POS);
+
+ // PWM_set_pulse(SERVO_RIGHT_BACK,MAX_POS);
+
+
+  //PWM_set_pulse(SERVO_ARM_YAW,MAX_POS);
 
   while (1)
   {
@@ -132,11 +137,11 @@ int main(void)
               softStartAll(150,0);
           }
           else if(strcmp(receiveBuffer,"RGHT") == 0){
-        	  steeringAngle++;
+        	  if(MID_POS + steeringAngle < 50) steeringAngle++;
         	  carMode(steeringAngle);
           }
           else if(strcmp(receiveBuffer,"LEFT") == 0){
-        	  steeringAngle--;
+        	  if(MID_POS - steeringAngle > -50) steeringAngle--;
         	  carMode(steeringAngle);
           }
           else if(strcmp(receiveBuffer,"LDON") == 0){
@@ -145,11 +150,19 @@ int main(void)
           else if(strcmp(receiveBuffer,"LDOF") == 0){
               changeLedState(0);
           }
+         // else if(receiveBuffer[0] == 'P'){
+        //	  int szaz = (receiveBuffer[1] - '0') * 100;
+        //	  int tiz = (receiveBuffer[2] - '0') * 10;
+        //	  int egy = (receiveBuffer[3] - '0') * 1;
+        //	  int pwm = (szaz + tiz + egy)*255/100;
+        //	  motorSpeed = pwm;
+          //}
           else{
         	  for (int i = 0; i < 6; i++) {
         		 DC_motor_set(i, 1, 0);
 			  }
           }
+
           HAL_UART_Transmit(&huart6, (uint8_t *) "ok", strlen("ok"), 120);
           strcpy(receiveBuffer, "");
 
@@ -160,12 +173,18 @@ int main(void)
   }
 }
 void carMode(int angle){
-	if(angle > 5) angle = 5;
-	else if(angle < -5) angle = -5;
+	///if(angle > 5) angle = 5;
+	///else if(angle < -5) angle = -5;
+	int newAngle = MID_POS+angle;
+	if(newAngle > MAX_POS) newAngle = MAX_POS;
+	if(newAngle < MIN_POS) newAngle = MIN_POS;
 
 	PWM_set_pulse(SERVO_LEFT_FRONT,MID_POS+angle);
+	HAL_Delay(10);
 	PWM_set_pulse(SERVO_RIGHT_FRONT,MID_POS+angle);
+	HAL_Delay(10);
 	PWM_set_pulse(SERVO_RIGHT_BACK,MID_POS);
+	HAL_Delay(10);
 	PWM_set_pulse(SERVO_LEFT_BACK,MID_POS);
 
 }
@@ -552,9 +571,9 @@ static void MX_TIM2_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 4799;//4;//2;
+  htim2.Init.Prescaler = 479;//4;//2;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 199;//24000;
+  htim2.Init.Period = 1999;//24000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
   {
@@ -600,9 +619,9 @@ static void MX_TIM3_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 4799;//2;
+  htim3.Init.Prescaler = 479;//2;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 199;
+  htim3.Init.Period = 1999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
@@ -652,9 +671,9 @@ static void MX_TIM4_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 4799;//2;
+  htim4.Init.Prescaler = 479;//2;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 199;
+  htim4.Init.Period = 1999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
   {
@@ -694,9 +713,9 @@ static void MX_TIM5_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim5.Instance = TIM5;
-  htim5.Init.Prescaler = 4799;//2;
+  htim5.Init.Prescaler = 479;//2;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 199;
+  htim5.Init.Period = 1999;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
   {
@@ -735,9 +754,9 @@ static void MX_TIM9_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 4799;//2
+  htim9.Init.Prescaler = 479;//2
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim9.Init.Period = 199;
+  htim9.Init.Period = 1999;
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim9) != HAL_OK)
   {
