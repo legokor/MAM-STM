@@ -120,28 +120,28 @@ int main(void)
 
   while (1)
   {
-	  HAL_Delay(10);
+
       if (newMessage) {
           //  do the thing
           // HAL_Delay(1000);
           // HAL_UART_Transmit_IT(&huart6, transmit_data, 4);
           //HAL_UART_Transmit(&huart6, (uint8_t *) transmit_data, strlen(transmit_data), 120);
-          HAL_UART_Transmit(&huart6, (uint8_t *) receiveBuffer, strlen(receiveBuffer), 120);
+         // HAL_UART_Transmit(&huart6, (uint8_t *) receiveBuffer, strlen(receiveBuffer), 120);
           newMessage = false;
 
 
           if(strcmp(receiveBuffer,"FOWD") == 0){
-              softStartAll(150,1);
+              softStartAll(700,1);
           }
           else if(strcmp(receiveBuffer,"BAWD") == 0){
-              softStartAll(150,0);
+              softStartAll(700,0);
           }
           else if(strcmp(receiveBuffer,"RGHT") == 0){
-        	  if(MID_POS + steeringAngle < 50) steeringAngle++;
+        	  if(MID_POS + steeringAngle < MAX_POS) steeringAngle+=5;
         	  carMode(steeringAngle);
           }
           else if(strcmp(receiveBuffer,"LEFT") == 0){
-        	  if(MID_POS - steeringAngle > -50) steeringAngle--;
+        	  if(MID_POS - steeringAngle > MIN_POS) steeringAngle-=5;
         	  carMode(steeringAngle);
           }
           else if(strcmp(receiveBuffer,"LDON") == 0){
@@ -163,10 +163,11 @@ int main(void)
 			  }
           }
 
-          HAL_UART_Transmit(&huart6, (uint8_t *) "ok", strlen("ok"), 120);
+          //HAL_UART_Transmit(&huart6, (uint8_t *) "ok", strlen("ok"), 120);
           strcpy(receiveBuffer, "");
 
       }
+      HAL_Delay(15);
 
 
 
@@ -179,12 +180,12 @@ void carMode(int angle){
 	if(newAngle > MAX_POS) newAngle = MAX_POS;
 	if(newAngle < MIN_POS) newAngle = MIN_POS;
 
-	PWM_set_pulse(SERVO_LEFT_FRONT,MID_POS+angle);
-	HAL_Delay(10);
-	PWM_set_pulse(SERVO_RIGHT_FRONT,MID_POS+angle);
-	HAL_Delay(10);
+	PWM_set_pulse(SERVO_LEFT_FRONT,newAngle);
+
+	PWM_set_pulse(SERVO_RIGHT_FRONT,newAngle);
+
 	PWM_set_pulse(SERVO_RIGHT_BACK,MID_POS);
-	HAL_Delay(10);
+
 	PWM_set_pulse(SERVO_LEFT_BACK,MID_POS);
 
 }
@@ -215,7 +216,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void softStartAll(int speed,int dir){
-	 for(int k = 0; k< 70; k+=10){
+	 for(int k = 0; k< speed; k+=10){
 		for (int i = 0; i < 6; i++) {
 			DC_motor_set(i, dir, k);
 		}
