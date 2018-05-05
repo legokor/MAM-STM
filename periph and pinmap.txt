@@ -62,18 +62,27 @@ default
 
 
 TIMER channels for 'PWM_set_pulse()' funcfion:
-0	tim2 ch3 PB10
-1	tim2 ch4 PB11
-2	tim3 ch1 PB4
-3	tim3 ch2 PB5
-4	tim3 ch3 PC8
-5	tim3 ch4 PC9
-6	tim4 ch3 PD14
-7	tim4 ch4 PD15
-8	tim5 ch3 PA2
-9	tim5 ch4 PA3
-10	tim9 ch1 PE5
-11	tim9 ch2 PE6
+0	tim2 ch3 0 -- servo ok
+1	tim2 ch4 PB11 -- motor
+2	tim3 ch1 PB4 -- motor
+3	tim3 ch2 PB5 -- motor
+4	tim3 ch3 PC8 -- servo ok
+5	tim3 ch4 PC9 -- servo ok
+6	tim4 ch3 PD14 -- servo ok
+7	tim4 ch4 PD15 -- servo ok
+8	tim2 ch1 PA1
+9	tim5 ch4 PA3 -- motor
+10	tim9 ch1 PE5 -- motor
+11	tim9 ch2 PE6 -- motor
+
+PA15 tim2 ch1
+
+Motor
+//0,4,5,6,7,8
+
+Szervok
+Nem forog
+bal hátsó -- PA15
 
 
 DC motor numbers for 'DC_motor_set()' function:

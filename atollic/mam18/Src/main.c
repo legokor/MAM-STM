@@ -8,9 +8,22 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
+#include <math.h>
 #include <stdbool.h>
 #include "main.h"
 #include "stm32f4xx_hal.h"
+
+#define SERVO_RIGHT_BACK 5
+#define SERVO_RIGHT_FRONT 6
+#define SERVO_LEFT_FRONT 7
+#define SERVO_LEFT_BACK 0
+#define SERVO_ARM_YAW 8
+
+#define MID_POS 21
+#define MIN_POS 14
+#define MAX_POS 27
+
+
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
@@ -53,6 +66,9 @@ void PWM_set_pulse(int ch, int pulse);
 void PWM_set_all_pulse(int pulse);
 
 void DC_motor_set(int motor_num, int dir, int speed);
+void carMode(int angle);
+void softStartAll(int speed,int dir);
+void changeLedState(int state);
 
 bool newMessage = false;
 
@@ -82,24 +98,21 @@ int main(void)
   /* -------------------------------------------------------- My init calls -------------------------------------------------------- */
 
   PWM_start_all();
-  PWM_set_all_pulse(0);
+  //PWM_set_all_pulse(0);
 
 
-  // __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
   HAL_UART_Receive_IT(&huart6, &rxBuf, 1);
 
-  // start all motors forward
-  for (int i = 0; i < 6; i++) {
-      DC_motor_set(i, 1, 70);
-  }
+  //0,4,5,6,7,8
 
 
-  // char transmit_data[4] = {'a', '0', '0', '0'};
-  char transmit_data[] = "nembirom";
 
   // ------------------------------------------------------------ while(1) ------------------------------------------------------------
+  //int k = 21;//servo positions : 14-27; -- 21 közép
+  int steeringAngle = 0;
 
-  /* Infinite loop */
+  PWM_set_pulse(SERVO_ARM_YAW,MID_POS);
+
   while (1)
   {
 	  HAL_Delay(10);
@@ -110,31 +123,91 @@ int main(void)
           //HAL_UART_Transmit(&huart6, (uint8_t *) transmit_data, strlen(transmit_data), 120);
           HAL_UART_Transmit(&huart6, (uint8_t *) receiveBuffer, strlen(receiveBuffer), 120);
           newMessage = false;
+
+
+          if(strcmp(receiveBuffer,"FOWD") == 0){
+              softStartAll(150,1);
+          }
+          else if(strcmp(receiveBuffer,"BAWD") == 0){
+              softStartAll(150,0);
+          }
+          else if(strcmp(receiveBuffer,"RGHT") == 0){
+        	  steeringAngle++;
+        	  carMode(steeringAngle);
+          }
+          else if(strcmp(receiveBuffer,"LEFT") == 0){
+        	  steeringAngle--;
+        	  carMode(steeringAngle);
+          }
+          else if(strcmp(receiveBuffer,"LDON") == 0){
+        	  changeLedState(1);
+          }
+          else if(strcmp(receiveBuffer,"LDOF") == 0){
+              changeLedState(0);
+          }
+          else{
+        	  for (int i = 0; i < 6; i++) {
+        		 DC_motor_set(i, 1, 0);
+			  }
+          }
+          HAL_UART_Transmit(&huart6, (uint8_t *) "ok", strlen("ok"), 120);
           strcpy(receiveBuffer, "");
-          PWM_set_all_pulse(90);
+
       }
 
 
+
   }
+}
+void carMode(int angle){
+	if(angle > 5) angle = 5;
+	else if(angle < -5) angle = -5;
+
+	PWM_set_pulse(SERVO_LEFT_FRONT,MID_POS+angle);
+	PWM_set_pulse(SERVO_RIGHT_FRONT,MID_POS+angle);
+	PWM_set_pulse(SERVO_RIGHT_BACK,MID_POS);
+	PWM_set_pulse(SERVO_LEFT_BACK,MID_POS);
+
+}
+
+void rotateMode(){
+	PWM_set_pulse(SERVO_LEFT_FRONT,MID_POS+4);
+	PWM_set_pulse(SERVO_RIGHT_BACK,MID_POS+4);
+	PWM_set_pulse(SERVO_RIGHT_FRONT,MID_POS-4);
+	PWM_set_pulse(SERVO_LEFT_BACK,MID_POS-4);
+}
+
+void allMotorStart(int speed,int dir){
+	for (int i = 0; i < 6; i++) {
+		DC_motor_set(i, dir, speed);
+	}
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   if (huart->Instance == huart6.Instance) {
-    if (rxBuf == '\n' || rxBuf == '\r') {
-      strcat(receiveBuffer, "\r\n");
-      newMessage = true;
-    } else {
-      int len = strlen(receiveBuffer);
-      receiveBuffer[len] = rxBuf;
-      receiveBuffer[len+1] = '\0';
-    }
+	  int len = strlen(receiveBuffer);
+	  receiveBuffer[len] = rxBuf;
+	  receiveBuffer[len+1] = '\0';
+	    if (strlen(receiveBuffer) == 4) {
+	      newMessage = true;
+	    }
     HAL_UART_Receive_IT(&huart6, &rxBuf, 1);
   }
 }
 
+void softStartAll(int speed,int dir){
+	 for(int k = 0; k< 70; k+=10){
+		for (int i = 0; i < 6; i++) {
+			DC_motor_set(i, dir, k);
+		}
+		HAL_Delay(10);
+	}
+}
+
 // starts al pwm channels
 void PWM_start_all(void) {
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
@@ -145,7 +218,7 @@ void PWM_start_all(void) {
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
-    HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_3);
+    //HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_4);
 
     HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
@@ -159,8 +232,8 @@ void PWM_start_all(void) {
  */
 void PWM_set_pulse(int ch, int pulse) {
 
-    int period = 24000;
-    pulse = period * pulse/100;
+    int period = 199;//24000;
+    pulse = period * (pulse/255.0);
 
     switch(ch) {
 
@@ -205,7 +278,8 @@ void PWM_set_pulse(int ch, int pulse) {
     }
 
     case 8: {
-        TIM5->CCR3 = pulse;
+        //TIM5->CCR3 = pulse;
+    	TIM2->CCR1 = pulse;
         break;
     }
 
@@ -231,6 +305,9 @@ void PWM_set_pulse(int ch, int pulse) {
     }
 }
 
+void changeLedState(int state){
+	 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, state);
+}
 /*
  * Sets all pwm to the same pulse width
  */
@@ -266,7 +343,7 @@ void DC_motor_set(int motor_num, int dir, int speed) {
         break;
     }
 
-    case 1: {
+    case 5: {
         PWM_set_pulse(1, speed);
 
         if (speed == 0) {
@@ -274,17 +351,17 @@ void DC_motor_set(int motor_num, int dir, int speed) {
         }
 
         if (dir == 0) {
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_RESET);
         }
         else {
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_SET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_15, GPIO_PIN_SET);
         }
         break;
     }
 
-    case 2: {
+    case 1: {
         PWM_set_pulse(11, speed);
 
         if (speed == 0) {
@@ -292,16 +369,17 @@ void DC_motor_set(int motor_num, int dir, int speed) {
         }
 
         if (dir == 0) {
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+
+        }
+        else {
             HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_SET);
             HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
         }
-        else {
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
-        }
         break;
     }
-    case 3: {
+    case 2: {
         PWM_set_pulse(10, speed);
 
         if (speed == 0) {
@@ -309,12 +387,13 @@ void DC_motor_set(int motor_num, int dir, int speed) {
         }
 
         if (dir == 0) {
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
         }
         else {
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+
         }
         break;
     }
@@ -327,17 +406,18 @@ void DC_motor_set(int motor_num, int dir, int speed) {
         }
 
         if (dir == 0) {
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+        	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+        	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
+
         }
         else {
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
         }
         break;
     }
 
-    case 5: {
+    case 3: {
         PWM_set_pulse(3, speed);
 
         if (speed == 0) {
@@ -345,12 +425,12 @@ void DC_motor_set(int motor_num, int dir, int speed) {
         }
 
         if (dir == 0) {
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
         }
         else {
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
         }
         break;
     }
@@ -472,9 +552,9 @@ static void MX_TIM2_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 2;
+  htim2.Init.Prescaler = 4799;//4;//2;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 24000;
+  htim2.Init.Period = 199;//24000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
   {
@@ -492,6 +572,12 @@ static void MX_TIM2_Init(void)
   sConfigOC.Pulse = 12000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+      _Error_Handler(__FILE__, __LINE__);
+  }
+
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -514,9 +600,9 @@ static void MX_TIM3_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 2;
+  htim3.Init.Prescaler = 4799;//2;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 24000;
+  htim3.Init.Period = 199;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
@@ -566,9 +652,9 @@ static void MX_TIM4_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 2;
+  htim4.Init.Prescaler = 4799;//2;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 24000;
+  htim4.Init.Period = 199;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
   {
@@ -608,9 +694,9 @@ static void MX_TIM5_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim5.Instance = TIM5;
-  htim5.Init.Prescaler = 2;
+  htim5.Init.Prescaler = 4799;//2;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 24000;
+  htim5.Init.Period = 199;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
   {
@@ -628,10 +714,10 @@ static void MX_TIM5_Init(void)
   sConfigOC.Pulse = 12000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+ /* if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
-  }
+  }*/
 
   if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
@@ -649,9 +735,9 @@ static void MX_TIM9_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 2;
+  htim9.Init.Prescaler = 4799;//2
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim9.Init.Period = 24000;
+  htim9.Init.Period = 199;
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim9) != HAL_OK)
   {
